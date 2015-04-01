@@ -45,7 +45,7 @@ angular.module('songhop', ['ionic', 'songhop.controllers'])
     views: {
       'tab-discover': {
         templateUrl: 'templates/discover.html',
-        controller: 'DiscoverCtrl as discover'
+        controller: 'DiscoverCtrl'
       }
     }
   })
