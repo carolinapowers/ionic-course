@@ -4,8 +4,8 @@ angular.module('songhop.controllers', ['ionic', 'songhop.services'])
 /*
 Controller for the discover page
 */
-.controller('DiscoverCtrl', function($scope) {
-    $scope.songs = [
+.controller('DiscoverCtrl', function() {
+    this.songs = [
      {
         "title":"Stealing Cinderella",
         "artist":"Chuck Wicks",
@@ -25,6 +25,8 @@ Controller for the discover page
         "image_large":"https://i.scdn.co/image/4e47ee3f6214fabbbed2092a21e62ee2a830058a"
      }
   ];
+    
+    this.currentSong = angular.copy(this.songs[0])};
 
 })
 
