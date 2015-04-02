@@ -4,9 +4,14 @@ angular.module('songhop.controllers', ['ionic', 'songhop.services'])
 /*
 Controller for the discover page
 */
-.controller('DiscoverCtrl', function($scope,$timeout, User) {
+.controller('DiscoverCtrl', function($scope,$timeout, User, Recommendations) {
+      Recommendations.init()
+    .then(function(){
+      $scope.currentSong = Recommendations.queue[0];
+                Recommendations.playCurrentSong();
+    });
    
-    $scope.songs = [
+    /*$scope.songs = [
      {
         "title":"Stealing Cinderella",
         "artist":"Chuck Wicks",
@@ -25,10 +30,10 @@ Controller for the discover page
         "image_small":"https://i.scdn.co/image/398df9a33a6019c0e95e3be05fbaf19be0e91138",
         "image_large":"https://i.scdn.co/image/4e47ee3f6214fabbbed2092a21e62ee2a830058a"
      }
-  ];
+  ]; 
     
     $scope.currentSong = angular.copy($scope.songs[0]);
-    
+    */
     
     $scope.sendFeedback = function (bool){
           // first, add to favorites if they favorited
@@ -36,14 +41,26 @@ Controller for the discover page
         $scope.currentSong.rated = bool;
         $scope.currentSong.hide = true;
         
-        $timeout(function() {
-        var randomSong = Math.round(Math.random() * ($scope.songs.length -1));
+        // prepare the next song
+    Recommendations.nextSong();
+
+    $timeout(function() {
+      // $timeout to allow animation to complete
+      $scope.currentSong = Recommendations.queue[0];
+    }, 250);
         
-        $scope.currentSong = angular.copy($scope.songs[randomSong]);
-               
-        }, 250);
-           
+         Recommendations.playCurrentSong();
     }
+    
+    // used for retrieving the next album image.
+  // if there isn't an album image available next, return empty string.
+  $scope.nextAlbumImg = function() {
+    if (Recommendations.queue.length > 1) {
+      return Recommendations.queue[1].image_large;
+    }
+
+    return '';
+  }
 
 })
 
@@ -65,6 +82,13 @@ Controller for the favorites page
 /*
 Controller for our tab bar
 */
-.controller('TabsCtrl', function($scope) {
+.controller('TabsCtrl', function($scope, Recommendations) {
+  // stop audio when going to favorites page
+  $scope.enteringFavorites = function() {
+    Recommendations.haltAudio();
+  }
 
+  $scope.leavingFavorites = function() {
+    Recommendations.init();
+  }
 });
