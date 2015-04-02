@@ -54,6 +54,10 @@ Controller for the favorites page
 .controller('FavoritesCtrl', function($scope, User) {
     $scope.favorites = User.favorites;
     
+     $scope.removeSong = function(song, index) {
+    User.removeSongFromFavorites(song, index);
+  }
+    
 
 })
 
