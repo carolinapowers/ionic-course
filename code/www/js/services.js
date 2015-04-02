@@ -26,11 +26,13 @@ angular.module('songhop.services', [])
     
 })
 
-.factory('Recommendations', function ($http, SERVER){
+.factory('Recommendations', function ($http, $q, SERVER){
     
     var o = {
         queue: []
     };
+    
+    var media;
     
     o.getNextSongs = function() {
         return $http ({
@@ -43,12 +45,41 @@ angular.module('songhop.services', [])
     }
     
     o.nextSong = function() {
-        o.queue.shift();
-        
-        if (o.queue.length <= 3) {
-            o.getNextSongs();
-        }
+        // pop the index 0 off
+    o.queue.shift();
+
+    // end the song
+    o.haltAudio();
+
+    // low on the queue? let's fill it up
+    if (o.queue.length <= 3) {
+      o.getNextSongs();
     }
+  }
+     
+    
+      o.playCurrentSong = function() {
+    var defer = $q.defer();
+
+    // play the current song's preview
+    media = new Audio(o.queue[0].preview_url);
+
+    // when song loaded, resolve the promise to let controller know.
+    media.addEventListener("loadeddata", function() {
+      defer.resolve();
+    });
+
+    media.play();
+
+    return defer.promise;
+  }
+
+  // used when switching to favorites tab
+  o.haltAudio = function() {
+    if (media) media.pause();
+  }
+    
+    
     
     return o;
 })
