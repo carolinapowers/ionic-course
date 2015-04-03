@@ -20,12 +20,18 @@ Controller for the discover page
   // set loading to true first time while we retrieve songs from server.
   showLoading();
     
-    Recommendations.init()
+   Recommendations.init()
     .then(function(){
+
       $scope.currentSong = Recommendations.queue[0];
-      Recommendations.playCurrentSong();
-      
+
+      return Recommendations.playCurrentSong();
+
+    })
+    .then(function(){
+      // turn loading off
       hideLoading();
+      $scope.currentSong.loaded = true;
     });
    
     /*$scope.songs = [
@@ -52,23 +58,30 @@ Controller for the discover page
     $scope.currentSong = angular.copy($scope.songs[0]);
     */
     
-    $scope.sendFeedback = function (bool){
-          // first, add to favorites if they favorited
+    // fired when we favorite / skip a song.
+  $scope.sendFeedback = function (bool) {
+
+    // first, add to favorites if they favorited
     if (bool) User.addSongToFavorites($scope.currentSong);
-        $scope.currentSong.rated = bool;
-        $scope.currentSong.hide = true;
-        
-        // prepare the next song
+
+    // set variable for the correct animation sequence
+    $scope.currentSong.rated = bool;
+    $scope.currentSong.hide = true;
+
+    // prepare the next song
     Recommendations.nextSong();
 
+    // update current song in scope, timeout to allow animation to complete
     $timeout(function() {
-      // $timeout to allow animation to complete
       $scope.currentSong = Recommendations.queue[0];
+      $scope.currentSong.loaded = false;
     }, 250);
-        
-         Recommendations.playCurrentSong();
-    }
-    
+
+    Recommendations.playCurrentSong().then(function() {
+      $scope.currentSong.loaded = true;
+    });
+  }
+
     // used for retrieving the next album image.
   // if there isn't an album image available next, return empty string.
   $scope.nextAlbumImg = function() {
