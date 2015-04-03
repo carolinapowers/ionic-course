@@ -1,6 +1,6 @@
-angular.module('songhop.services', [])
+angular.module('songhop.services', ['ionic.utils'])
 
-.factory('User', function ($http, SERVER) {
+.factory('User', function ($http, $q, $localstorage, SERVER) {
      
     var o = {
         username: false,
@@ -8,6 +8,7 @@ angular.module('songhop.services', [])
         favorites: [ ],
         newFavorites: 0
     }
+   
     
      // attempt login or signup
   o.auth = function(username, signingUp) {
@@ -20,31 +21,65 @@ angular.module('songhop.services', [])
       authRoute = 'login'
     }
 
-    return $http.post(SERVER.url + '/' + authRoute, {username: username});
+    return $http.post(SERVER.url + '/' + authRoute, {username: username})
+      .success(function(data){
+        o.setSession(data.username, data.session_id, data.favorites);
+      });
   }
   
+   
+    // set session data
+  o.setSession = function(username, session_id, favorites) {
+    if (username) o.username = username;
+    if (session_id) o.session_id = session_id;
+    if (favorites) o.favorites = favorites;
+
+    // set data in localstorage object
+    $localstorage.setObject('user', { username: username, session_id: session_id });
+  }
     
-    o.addSongToFavorites = function(song) {
+o.addSongToFavorites = function(song) {
     // make sure there's a song to add
     if (!song) return false;
 
     // add to favorites array
     o.favorites.unshift(song);
     o.newFavorites++;
+
+    // persist this to the server
+    return $http.post(SERVER.url + '/favorites', {session_id: o.session_id, song_id:song.song_id });
   }
     
     o.favoriteCount = function() {
     return o.newFavorites;
   }
     
-    o.removeSongFromFavorites = function(song, index) {
+      o.removeSongFromFavorites = function(song, index) {
     // make sure there's a song to add
     if (!song) return false;
 
     // add to favorites array
     o.favorites.splice(index, 1);
+
+    // persist this to the server
+    return $http({
+      method: 'DELETE',
+      url: SERVER.url + '/favorites',
+      params: { session_id: o.session_id, song_id:song.song_id }
+    });
+
   }
-    
+      // gets the entire list of this user's favs from server
+  o.populateFavorites = function() {
+    return $http({
+      method: 'GET',
+      url: SERVER.url + '/favorites',
+      params: { session_id: o.session_id }
+    }).success(function(data){
+      // merge data into the queue
+      o.favorites = data;
+    });
+  }
     return o;
     
     
