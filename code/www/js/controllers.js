@@ -99,6 +99,8 @@ Controller for the discover page
 Controller for the favorites page
 */
 .controller('FavoritesCtrl', function($scope, $window, User) {
+    
+    $scope.username = User.username;
     $scope.favorites = User.favorites;
     
      $scope.removeSong = function(song, index) {
@@ -115,7 +117,14 @@ Controller for the favorites page
 /*
 Controller for our tab bar
 */
-.controller('TabsCtrl', function($scope, User, Recommendations) {
+.controller('TabsCtrl', function($scope, $window, User, Recommendations ) {
+     $scope.logout = function() {
+      User.destroySession();
+
+    // instead of using $state.go, we're going to redirect.
+    // reason: we need to ensure views aren't cached.
+    $window.location.href = 'index.html';
+  }
       // expose the number of new favorites to the scope
   $scope.favCount = User.favoriteCount;
   
